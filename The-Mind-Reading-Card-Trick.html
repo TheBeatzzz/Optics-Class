@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Mind-Reading Card Trick</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #1a1a2e;
+            background-image: radial-gradient(circle at top, #1f223d, #1a1a2e);
+        }
+        .card {
+            font-family: 'Merriweather', serif;
+            width: 100px;
+            height: 140px;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 20px rgba(255, 255, 255, 0.1) inset;
+            position: relative;
+            cursor: default;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 255, 255, 0.2) inset;
+        }
+        .card.red { color: #c81e1e; }
+        .card.black { color: #222; }
+        .card-rank-top { align-self: flex-start; }
+        .card-suit-center {
+            font-size: 3rem;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .card-rank-bottom { align-self: flex-end; transform: rotate(180deg); }
+        .spotlight {
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+        }
+    </style>
+</head>
+<body class="text-white flex items-center justify-center min-h-screen p-4">
+
+    <div id="trick-container" class="text-center w-full max-w-4xl mx-auto">
+        
+        <!-- Step 1: Initial Instructions -->
+        <div id="step1">
+            <h1 class="text-4xl md:text-5xl font-bold font-serif mb-4" style="font-family: 'Merriweather', serif;">The Digital Mind Reader</h1>
+            <p class="text-lg md:text-xl text-gray-300 mb-8">First, pick any card from the set below. Don't click it, just keep it in your mind.</p>
+            <div id="card-grid-1" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 md:gap-6 mb-8 justify-center">
+                <!-- Cards for step 1 will be generated here -->
+            </div>
+            <button id="next-step-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-500 transition-all transform hover:scale-105 shadow-lg text-lg">
+                Got it. Read my mind!
+            </button>
+        </div>
+
+        <!-- Step 2: The Reveal -->
+        <div id="step2" class="hidden">
+            <h2 class="text-3xl md:text-4xl font-bold font-serif mb-4" style="font-family: 'Merriweather', serif;">Concentrate...</h2>
+            <p class="text-lg md:text-xl text-gray-300 mb-8">You were thinking of a card, and now... Poof! Look closely. I have removed your chosen card from the set.</p>
+            <div id="card-grid-2" class="grid grid-cols-3 sm:grid-cols-5 gap-4 md:gap-6 mb-8 justify-center">
+                <!-- Cards for step 2 will be generated here -->
+            </div>
+            <button id="reveal-secret-btn" class="bg-amber-600 text-white font-bold py-2 px-6 rounded-full hover:bg-amber-500 transition-all transform hover:scale-105 shadow-md">How did you do that?</button>
+        </div>
+
+        <!-- The Secret Explanation -->
+        <div id="secret" class="hidden mt-12 p-6 bg-black bg-opacity-30 rounded-lg max-w-2xl mx-auto border border-gray-600">
+            <h3 class="text-2xl font-bold font-serif mb-4" style="font-family: 'Merriweather', serif;">The Secret: It's All in Your Head</h3>
+            <p class="text-gray-300">This isn't magic, it's psychology! Your brain is excellent at focusing on one thing (picking a card) but not so good at memorizing an entire random set. When I showed you the second group of cards, you looked for your card and saw it was missing.</p>
+            <p class="text-gray-300 mt-4">The trick? <strong class="text-amber-400">Every single card in the second set is different from the first.</strong> Your card was "gone" simply because the entire original set was replaced!</p>
+            <p class="text-gray-300 mt-4">This is a form of <strong class="text-amber-400">'Change Blindness,'</strong> a fascinating topic in perception science. It proves we don't see everything we think we see. Our brain takes shortcuts to manage information.</p>
+            <button id="reset-btn" class="mt-6 bg-gray-500 text-white font-bold py-2 px-6 rounded-full hover:bg-gray-400 transition-all">Try Again</button>
+        </div>
+
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const suits = {
+        '♠': 'black', '♣': 'black',
+        '♥': 'red', '♦': 'red'
+    };
+    const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+    const cardGrid1 = document.getElementById('card-grid-1');
+    const cardGrid2 = document.getElementById('card-grid-2');
+    const step1Div = document.getElementById('step1');
+    const step2Div = document.getElementById('step2');
+    const secretDiv = document.getElementById('secret');
+    
+    const nextStepBtn = document.getElementById('next-step-btn');
+    const revealSecretBtn = document.getElementById('reveal-secret-btn');
+    const resetBtn = document.getElementById('reset-btn');
+
+    let initialCards = [];
+    let revealCards = [];
+
+    function createCardElement(rank, suit) {
+        const card = document.createElement('div');
+        const color = suits[suit];
+        card.className = `card ${color}`;
+        
+        card.innerHTML = `
+            <div class="card-rank-top">${rank}</div>
+            <div class="card-suit-center">${suit}</div>
+            <div class="card-rank-bottom">${rank}</div>
+        `;
+        return card;
+    }
+
+    function generateUniqueCards(count, excludeList = []) {
+        const cards = new Set();
+        const excludeSet = new Set(excludeList.map(c => `${c.rank}-${c.suit}`));
+
+        while (cards.size < count) {
+            const rank = ranks[Math.floor(Math.random() * ranks.length)];
+            const suit = Object.keys(suits)[Math.floor(Math.random() * Object.keys(suits).length)];
+            const cardKey = `${rank}-${suit}`;
+            
+            if (!excludeSet.has(cardKey)) {
+                cards.add(cardKey);
+            }
+        }
+        
+        return Array.from(cards).map(key => {
+            const [rank, suit] = key.split('-');
+            return { rank, suit };
+        });
+    }
+
+    function populateGrid(gridElement, cardData) {
+        gridElement.innerHTML = '';
+        cardData.forEach(card => {
+            const cardEl = createCardElement(card.rank, card.suit);
+            gridElement.appendChild(cardEl);
+        });
+    }
+
+    function setupTrick() {
+        step1Div.classList.remove('hidden');
+        step2Div.classList.add('hidden');
+        secretDiv.classList.add('hidden');
+
+        initialCards = generateUniqueCards(6);
+        revealCards = generateUniqueCards(5, initialCards);
+
+        populateGrid(cardGrid1, initialCards);
+        populateGrid(cardGrid2, revealCards);
+    }
+
+    nextStepBtn.addEventListener('click', () => {
+        step1Div.classList.add('hidden');
+        step2Div.classList.remove('hidden');
+    });
+
+    revealSecretBtn.addEventListener('click', () => {
+        secretDiv.classList.remove('hidden');
+    });
+
+    resetBtn.addEventListener('click', () => {
+        setupTrick();
+    });
+
+    // Initial setup
+    setupTrick();
+});
+</script>
+
+</body>
+</html>
